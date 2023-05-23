@@ -35,8 +35,17 @@ ln -s /etc/nginx/sites-available/$domain_name /etc/nginx/sites-enabled/
 # Install Postfix
 apt-get install -y postfix
 
+# Configure Postfix
+postconf -e "myhostname = $domain_name"
+postconf -e "mydestination = $domain_name, localhost"
+postconf -e "alias_maps = hash:/etc/aliases, hash:/var/lib/mailman/data/aliases"
+
 # Install Dovecot
 apt-get install -y dovecot-core dovecot-imapd dovecot-lmtpd dovecot-sieve
+
+# Configure Dovecot
+sed -i "s/#mail_plugins = .*/mail_plugins = \$mail_plugins sieve/" /etc/dovecot/conf.d/20-imap.conf
+echo "mailman_destination_recipient_limit = 1" >> /etc/postfix/main.cf
 
 # Install PostgreSQL server
 apt-get install -y postgresql postgresql-contrib
